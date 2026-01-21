@@ -44,7 +44,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     category: project.category,
     featured: project.featured,
     image: project.image?.url
-      ? `${import.meta.env.VITE_STRAPI_URL}${project.image.url}`
+      ? `${project.image.url}`
       : '/public/images/no-image.png',
   }));
 
@@ -56,7 +56,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     date: post.date,
     body: post.body,
     image: post.image?.url
-      ? `${import.meta.env.VITE_STRAPI_URL}${post.image.url}`
+      ? `${post.image.url}`
       : '/public/images/no-image.png',
   }));
 
