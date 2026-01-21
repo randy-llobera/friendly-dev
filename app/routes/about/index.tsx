@@ -10,7 +10,7 @@ const AboutPage = () => {
         />
         <div>
           <h1 className='text-3xl font-bold text-white mb-2'>
-            Hey, I'm Brad 👋
+            Hey, I'm Randy 👋
           </h1>
           <p className='text-gray-300 text-lg'>
             I'm a passionate web developer and content creator who loves

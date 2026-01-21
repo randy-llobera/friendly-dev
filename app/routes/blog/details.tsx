@@ -3,11 +3,6 @@ import type { Route } from './+types/details';
 import type { PostMeta } from '~/types';
 import { Link } from 'react-router';
 
-type BlogPostDetails = {
-  postMeta: PostMeta;
-  markdown: string;
-};
-
 export async function loader({ request, params }: Route.LoaderArgs) {
   const { slug } = params;
 
