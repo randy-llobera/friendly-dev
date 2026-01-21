@@ -3,13 +3,13 @@ import ProjectCard from './ProjectCard';
 
 type FeaturedProjectsProps = {
   projects: Project[];
-  count: number;
+  count?: number;
 };
 
 const FeaturedProjects = ({ projects, count = 4 }: FeaturedProjectsProps) => {
-  const featuredProjects = projects
-    .filter((project) => project.featured)
-    .slice(0, count);
+  if (projects.length === 0) return null;
+
+  const featuredProjects = projects.slice(0, count);
 
   return (
     <section>
