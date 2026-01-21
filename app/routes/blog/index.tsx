@@ -1,32 +1,38 @@
 import type { Route } from './+types/index';
-import type { PostMeta } from '~/types';
+import type { Post, StrapiPost, StrapiResponse } from '~/types';
 import { useState } from 'react';
 import PostCard from '~/components/PostCard';
 import Pagination from '~/components/Pagination';
 import PostFilter from '~/components/PostFilter';
 
-export async function loader({
-  request,
-}: Route.LoaderArgs): Promise<{ posts: PostMeta[] }> {
-  const url = new URL('/posts-meta.json', request.url);
-  const res = await fetch(url.href);
-
-  if (!res.ok) throw new Error('Failed to fetch data');
-  const data = await res.json();
-
-  data.sort(
-    (a: PostMeta, b: PostMeta) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime(),
+export async function loader({ request }: Route.LoaderArgs) {
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/posts?populate=image&sort=date:desc`,
   );
 
-  return { posts: data };
+  if (!res.ok) throw new Error('Failed to fetch data');
+  const json: StrapiResponse<StrapiPost> = await res.json();
+
+  const posts: Post[] = json.data.map((post) => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt,
+    slug: post.slug,
+    date: post.date,
+    body: post.body,
+    image: post.image?.url
+      ? `${import.meta.env.VITE_STRAPI_URL}${post.image.url}`
+      : '/public/images/no-image.png',
+  }));
+
+  return { posts };
 }
 
 const BlogPage = ({ loaderData }: Route.ComponentProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchBy, setSearchBy] = useState('');
 
-  const posts: PostMeta[] = loaderData.posts;
+  const posts = loaderData.posts;
   const filteredPosts = searchBy
     ? posts.filter((post) => {
         const value = searchBy.toLowerCase();
@@ -37,10 +43,10 @@ const BlogPage = ({ loaderData }: Route.ComponentProps) => {
       })
     : posts;
 
-  const blogsPerPage = 10;
-  const numberOfPages = Math.ceil(filteredPosts.length / blogsPerPage);
-  const indexOfLast = currentPage * blogsPerPage;
-  const indexOfFirst = indexOfLast - blogsPerPage;
+  const postsPerPage = 3;
+  const numberOfPages = Math.ceil(filteredPosts.length / postsPerPage);
+  const indexOfLast = currentPage * postsPerPage;
+  const indexOfFirst = indexOfLast - postsPerPage;
 
   const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
 

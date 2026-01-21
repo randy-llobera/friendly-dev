@@ -1,6 +1,11 @@
 import type { Route } from './+types/index';
-import type { Project, StrapiResponse, StrapiProject } from '~/types';
-import type { PostMeta } from '~/types';
+import type {
+  Project,
+  StrapiResponse,
+  StrapiProject,
+  StrapiPost,
+} from '~/types';
+import type { Post } from '~/types';
 import FeaturedProjects from '~/components/FeaturedProjects';
 import AboutPreview from '~/components/AboutPreview';
 import LatestPosts from '~/components/LatestPosts';
@@ -12,24 +17,24 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function loader({
-  request,
-}: Route.LoaderArgs): Promise<{ projects: Project[]; posts: PostMeta[] }> {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const [projectRes, postRes] = await Promise.all([
     fetch(
       `${import.meta.env.VITE_API_URL}/projects?filters[featured][$eq]=true&populate=*`,
     ),
-    fetch(new URL('/posts-meta.json', url)),
+    fetch(
+      `${import.meta.env.VITE_API_URL}/posts?sort[0]=date:desc&populate=image`,
+    ),
   ]);
 
   if (!projectRes.ok || !postRes.ok)
     throw new Error('Failed to fetch projects or posts');
 
   const projectsJson: StrapiResponse<StrapiProject> = await projectRes.json();
-  const posts = await postRes.json();
+  const postJson: StrapiResponse<StrapiPost> = await postRes.json();
 
-  const projects = projectsJson.data.map((project) => ({
+  const projects: Project[] = projectsJson.data.map((project) => ({
     id: project.id,
     documentId: project.documentId,
     title: project.title,
@@ -40,6 +45,18 @@ export async function loader({
     featured: project.featured,
     image: project.image?.url
       ? `${import.meta.env.VITE_STRAPI_URL}${project.image.url}`
+      : '/public/images/no-image.png',
+  }));
+
+  const posts: Post[] = postJson.data.map((post) => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt,
+    slug: post.slug,
+    date: post.date,
+    body: post.body,
+    image: post.image?.url
+      ? `${import.meta.env.VITE_STRAPI_URL}${post.image.url}`
       : '/public/images/no-image.png',
   }));
 
